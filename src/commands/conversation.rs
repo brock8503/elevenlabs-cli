@@ -381,7 +381,7 @@ async fn start_websocket_conversation(args: ConverseArgs) -> Result<()> {
     });
 
     ws_sender
-        .send(Message::Text(init_message.to_string()))
+        .send(Message::Text(init_message.to_string().into()))
         .await
         .context("Failed to send initialization message")?;
 
@@ -397,7 +397,7 @@ async fn start_websocket_conversation(args: ConverseArgs) -> Result<()> {
             });
 
             if ws_sender
-                .send(Message::Text(message.to_string()))
+                .send(Message::Text(message.to_string().into()))
                 .await
                 .is_err()
             {

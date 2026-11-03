@@ -72,7 +72,7 @@ async fn execute_ws_tts(args: RealtimeTtsArgs, api_key: &str, assume_yes: bool) 
     });
 
     ws_sender
-        .send(Message::Text(bos.to_string()))
+        .send(Message::Text(bos.to_string().into()))
         .await
         .context("Failed to send BOS message")?;
 
@@ -83,7 +83,7 @@ async fn execute_ws_tts(args: RealtimeTtsArgs, api_key: &str, assume_yes: bool) 
     });
 
     ws_sender
-        .send(Message::Text(text_msg.to_string()))
+        .send(Message::Text(text_msg.to_string().into()))
         .await
         .context("Failed to send text message")?;
 
