@@ -212,7 +212,7 @@ Default config path: `~/.config/elevenlabs-cli/config.toml`
 
 ```toml
 api_key = "your-api-key"
-default_voice = "Brian"
+default_voice = "nPczCjzI2devNBz1zQrb"  # a voice ID, not a name; tts uses it when --voice is omitted
 default_model = "eleven_multilingual_v2"
 default_output_format = "mp3_44100_128"
 

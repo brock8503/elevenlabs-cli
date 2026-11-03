@@ -13,9 +13,9 @@ pub struct TextToSpeechArgs {
     #[arg(short = 'i', long, value_name = "FILE")]
     pub file: Option<String>,
 
-    /// Voice ID to use (default: Brian)
-    #[arg(long, default_value = "Brian")]
-    pub voice: String,
+    /// Voice ID to use (default: config default_voice, else Brian)
+    #[arg(long)]
+    pub voice: Option<String>,
 
     /// Model to use
     #[arg(short, long, default_value = "eleven_multilingual_v2")]

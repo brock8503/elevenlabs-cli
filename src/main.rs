@@ -141,7 +141,8 @@ async fn main() -> Result<()> {
 
     let result: Result<()> = async {
         match command {
-            Commands::TextToSpeech(args) => {
+            Commands::TextToSpeech(mut args) => {
+                args.voice = args.voice.or_else(|| config.default_voice.clone());
                 commands::tts::execute(args, &api_key, output_format, assume_yes).await?
             }
             Commands::SpeechToText(args) => commands::stt::execute(args, &api_key).await?,
@@ -289,7 +290,7 @@ async fn run_interactive_mode(api_key: &str, default_format: &str, assume_yes: b
                 let args = TextToSpeechArgs {
                     text: Some(text),
                     file: None,
-                    voice: "Brian".to_string(),
+                    voice: None,
                     model: "eleven_multilingual_v2".to_string(),
                     output: None,
                     play: false,

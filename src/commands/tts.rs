@@ -13,12 +13,22 @@ use elevenlabs_rs::{
 };
 use std::path::Path;
 
+/// Premade "Brian" voice. The API takes voice IDs, not names.
+pub const DEFAULT_VOICE_ID: &str = "nPczCjzI2devNBz1zQrb";
+
 pub async fn execute(
     args: TextToSpeechArgs,
     api_key: &str,
     output_format: &str,
     assume_yes: bool,
 ) -> Result<()> {
+    let voice = args
+        .voice
+        .as_deref()
+        .unwrap_or(DEFAULT_VOICE_ID)
+        .to_string();
+    let voice = voice.as_str();
+
     // Get input text
     let text = get_input_text(args.text, args.file)?;
 
@@ -76,7 +86,7 @@ pub async fn execute(
 
     print_info(&format!(
         "Generating speech with voice '{}'...",
-        args.voice.cyan()
+        voice.cyan()
     ));
     print_info(&format!("Model: {}", args.model.yellow()));
     print_info(&format!("Characters: {}", text.len().to_string().yellow()));
@@ -85,7 +95,7 @@ pub async fn execute(
     let query = TextToSpeechQuery::default().with_output_format(format);
 
     // Create endpoint
-    let endpoint = TextToSpeech::new(&args.voice, body).with_query(query);
+    let endpoint = TextToSpeech::new(voice, body).with_query(query);
 
     // Generate speech
     let start_time = std::time::Instant::now();
