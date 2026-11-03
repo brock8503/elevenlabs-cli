@@ -76,7 +76,8 @@ pub async fn execute(
             settings = settings.with_style(st);
         }
         if let Some(sp) = args.speed {
-            settings = settings.with_speed(sp);
+            // 1.2f32 serializes as 1.2000000476, which the API rejects as > 1.2
+            settings = settings.with_speed(sp.min(1.199_999_9));
         }
         settings = settings.use_speaker_boost(args.speaker_boost);
         Some(settings)
