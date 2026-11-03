@@ -21,6 +21,7 @@ elevenlabs-cli voice list -j                 # find voice IDs
 ```
 
 - Default output folder: `~/Development/scratch/tts/` (create it if missing). Name files after the content, e.g. `2026-11-03-tdr-intro.mp3`.
+- Speed: `--speed 0.7-1.2`, else `default_speed` from config (user default 1.15).
 - Voice: `--voice <ID>`, else `default_voice` from config, else Brian (`nPczCjzI2devNBz1zQrb`). Always pass voice IDs, never names (names return `voice_not_found`). Set the default with `elevenlabs-cli config set default_voice <ID>`. Ask before switching to a paid or cloned voice.
 - Picking a voice: `elevenlabs-cli voice list -j` needs the key's **Voices: Read** permission. Without it, generate short samples per premade voice ID into `~/Development/scratch/tts/voice-samples/` and let the user listen.
 - Long scripts cost credits (billed per character). For text over ~5,000 characters, tell the user the character count and confirm before generating.
