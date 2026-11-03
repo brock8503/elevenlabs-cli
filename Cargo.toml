@@ -40,9 +40,6 @@ colored = "2.1"
 indicatif = "0.17"
 directories = "5.0"
 toml = "0.8"
-flate2 = "1.0"
-tar = "0.4"
-zip = { version = "2.0", default-features = false, features = ["deflate"] }
 reqwest = { version = "0.11", features = ["json", "multipart", "stream", "rustls-tls"], default-features = false }
 futures = "0.3"
 futures-util = "0.3"

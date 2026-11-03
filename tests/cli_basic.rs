@@ -190,18 +190,16 @@ fn test_help_update() {
 }
 
 #[test]
-fn test_update_check() {
-    // Update check should work without API key
+fn test_update_is_disabled() {
+    // Self-update is disabled in this fork; it must fail without touching the network
     let output = Command::new(cargo_bin())
         .args(["update", "--check"])
         .output()
         .expect("Failed to run CLI");
 
-    // Should succeed (exit code 0)
-    assert!(output.status.success());
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("Current version:"));
-    assert!(stdout.contains("Latest version:"));
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("self-update is disabled"));
 }
 
 #[test]
