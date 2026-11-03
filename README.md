@@ -94,6 +94,39 @@ elevenlabs-cli stt audio.mp3
 > [!TIP]
 > Examples use `elevenlabs-cli` (the default binary name). If you want a shorter command, add an alias such as `alias elevenlabs='elevenlabs-cli'`.
 
+## Authentication
+
+The CLI reads your key from `ELEVENLABS_API_KEY` (or `--api-key`, or `api_key` in the config file). Create a key at [elevenlabs.io/app/settings/api-keys](https://elevenlabs.io/app/settings/api-keys).
+
+### Store the key in macOS Keychain (recommended)
+
+Keep the key out of shell history and plaintext files:
+
+```bash
+# Store or replace the key (-U updates an existing entry). It prompts for the key.
+security add-generic-password -U -a "$USER" -s elevenlabs-api-key -w
+
+# Load it in your shell profile (e.g. ~/.bash_profile or ~/.zshrc)
+ELEVENLABS_API_KEY="$(security find-generic-password -a "$USER" -s elevenlabs-api-key -w 2>/dev/null)"
+export ELEVENLABS_API_KEY
+```
+
+Open a new shell (or re-source your profile) after changing the key, because running shells keep the old value.
+
+If you use `config set api_key` instead, the config file is written with owner-only permissions (`0600`).
+
+### Troubleshooting authentication errors
+
+When the API rejects a key, the CLI prints the raw error and then a fix hint. The common cases:
+
+| API `status` | What it means | Fix |
+| --- | --- | --- |
+| `api_key_id_used_as_api_key` | You pasted the key **ID** from the dashboard key list, not the secret. | Use the secret key, which starts with `sk_`. It is shown only once, when the key is created. If you lost it, rotate the key or create a new one, then update Keychain with the `-U` command above. |
+| `missing_permissions` | The key is a restricted key and lacks the permission named in the message (e.g. `voices_read`). Other commands may still work. | Edit the key in the dashboard and enable that permission, or use a key with broader access. |
+| `invalid_api_key` | The key is unknown, revoked, or mistyped. | Check it in the dashboard (it should start with `sk_`) and update Keychain. |
+
+Restricted keys are a good default: grant only what you use. `tts` needs **Text to Speech**. `voice list` needs **Voices: Read**.
+
 ## Feature Surface
 
 | Area | Commands |

@@ -179,6 +179,86 @@ pub fn is_retryable(err: &anyhow::Error) -> Retryable {
     parse_api_error(err).retryable()
 }
 
+/// The ElevenLabs authentication failure behind an API error, if any.
+#[derive(Debug, PartialEq)]
+pub enum AuthProblem {
+    /// The key ID (shown in the dashboard key list) was used instead of the `sk_` secret
+    KeyIdUsedAsKey,
+    /// The key is valid but restricted; carries the missing permission when the API names it
+    MissingPermission(Option<String>),
+    /// The key is unknown, revoked, or malformed
+    InvalidKey,
+}
+
+/// Classify an ElevenLabs authentication error from the API's `status`/`code` fields.
+pub fn auth_problem(err: &anyhow::Error) -> Option<AuthProblem> {
+    let msg = format!("{:#}", err);
+    if msg.contains("api_key_id_used_as_api_key") {
+        return Some(AuthProblem::KeyIdUsedAsKey);
+    }
+    if msg.contains("missing_permissions") {
+        let perm = msg
+            .split("missing the permission ")
+            .nth(1)
+            .and_then(|rest| rest.split_whitespace().next())
+            .map(|p| p.to_string());
+        return Some(AuthProblem::MissingPermission(perm));
+    }
+    if msg.contains("invalid_api_key") || msg.contains("authentication_error") {
+        return Some(AuthProblem::InvalidKey);
+    }
+    None
+}
+
+const KEYS_URL: &str = "https://elevenlabs.io/app/settings/api-keys";
+const KEYCHAIN_UPDATE: &str =
+    "security add-generic-password -U -a \"$USER\" -s elevenlabs-api-key -w";
+
+/// Print fix steps for an authentication error. Returns false if `err` is not one.
+pub fn print_auth_hint(err: &anyhow::Error) -> bool {
+    let Some(problem) = auth_problem(err) else {
+        return false;
+    };
+    eprintln!();
+    match &problem {
+        AuthProblem::KeyIdUsedAsKey => {
+            eprintln!(
+                "{}",
+                "You used the API key's ID, not the key itself.".yellow()
+            );
+            eprintln!("  The key list at {} shows IDs. The secret key", KEYS_URL);
+            eprintln!("  starts with `sk_` and is shown only once, when the key is created.");
+            eprintln!("  If you no longer have it, rotate the key or create a new one.");
+        }
+        AuthProblem::MissingPermission(perm) => {
+            let perm = perm.as_deref().unwrap_or("required");
+            eprintln!(
+                "{}",
+                format!(
+                    "Your API key is restricted and lacks the `{}` permission.",
+                    perm
+                )
+                .yellow()
+            );
+            eprintln!("  Edit the key at {} and enable it,", KEYS_URL);
+            eprintln!("  or use a key with broader access. Other commands may still work.");
+            return true;
+        }
+        AuthProblem::InvalidKey => {
+            eprintln!(
+                "{}",
+                "Your API key was rejected (invalid, revoked, or mistyped).".yellow()
+            );
+            eprintln!("  Check it at {}; keys start with `sk_`.", KEYS_URL);
+        }
+    }
+    eprintln!();
+    eprintln!("  Update the key in macOS Keychain (prompts for it, never echoes it):");
+    eprintln!("    {}", KEYCHAIN_UPDATE);
+    eprintln!("  Then open a new shell (or `source ~/.custom`) so ELEVENLABS_API_KEY reloads.");
+    true
+}
+
 /// Print error with helpful guidance based on error type
 pub fn print_api_error(err: &anyhow::Error) {
     if is_missing_api_key(err) {
@@ -193,9 +273,11 @@ pub fn print_api_error(err: &anyhow::Error) {
         eprintln!("  elevenlabs --api-key YOUR_API_KEY ...");
     } else if is_unauthorized(err) {
         eprintln!("{}", "Error: Invalid API key".red());
-        eprintln!();
-        eprintln!("{}", "Your API key may be invalid or expired.".yellow());
-        eprintln!("Get a new key from: https://elevenlabs.io/app/settings/api-keys");
+        if !print_auth_hint(err) {
+            eprintln!();
+            eprintln!("{}", "Your API key may be invalid or expired.".yellow());
+            eprintln!("Get a new key from: {}", KEYS_URL);
+        }
     } else if is_forbidden(err) {
         eprintln!("{}", "Error: Permission denied".red());
         eprintln!();
@@ -422,4 +504,36 @@ pub fn print_subscription_info(tier: &str) {
     println!();
     println!("{}", "View full feature comparison:".dimmed());
     println!("  https://elevenlabs.io/pricing");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn auth_problem_detects_key_id() {
+        let e = anyhow::Error::msg(
+            r#"http error: {"detail":{"code":"invalid_api_key","status":"api_key_id_used_as_api_key"}}"#,
+        );
+        assert_eq!(auth_problem(&e), Some(AuthProblem::KeyIdUsedAsKey));
+    }
+
+    #[test]
+    fn auth_problem_extracts_missing_permission() {
+        let e = anyhow::Error::msg(
+            r#"http error: {"detail":{"message":"The API key you used is missing the permission voices_read to execute this operation.","status":"missing_permissions","type":"authentication_error"}}"#,
+        );
+        assert_eq!(
+            auth_problem(&e),
+            Some(AuthProblem::MissingPermission(Some("voices_read".into())))
+        );
+    }
+
+    #[test]
+    fn auth_problem_ignores_other_errors() {
+        let e = anyhow::Error::msg(
+            r#"http error: {"detail":{"code":"voice_not_found","type":"not_found"}}"#,
+        );
+        assert_eq!(auth_problem(&e), None);
+    }
 }

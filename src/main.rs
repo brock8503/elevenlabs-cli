@@ -126,10 +126,11 @@ async fn main() -> Result<()> {
     let json_output = cli.json;
 
     // Apply config defaults
-    let output_format = config
+    let output_format_owned = config
         .default_output_format
-        .as_deref()
-        .unwrap_or(&cli.format);
+        .clone()
+        .unwrap_or_else(|| cli.format.clone());
+    let output_format = output_format_owned.as_str();
 
     if cli.verbose {
         println!("{} Using ElevenLabs API", "ℹ".blue());
@@ -138,61 +139,87 @@ async fn main() -> Result<()> {
     // Initialize JSON output mode in the output module
     output::set_json_mode(json_output);
 
-    match command {
-        Commands::TextToSpeech(args) => {
-            commands::tts::execute(args, &api_key, output_format, assume_yes).await?
+    let result: Result<()> = async {
+        match command {
+            Commands::TextToSpeech(args) => {
+                commands::tts::execute(args, &api_key, output_format, assume_yes).await?
+            }
+            Commands::SpeechToText(args) => commands::stt::execute(args, &api_key).await?,
+            Commands::Voice(args) => commands::voice::execute(args, &api_key, assume_yes).await?,
+            Commands::AudioIsolation(args) => {
+                commands::isolation::execute(args, &api_key, assume_yes).await?
+            }
+            Commands::SoundEffects(args) => {
+                commands::sfx::execute(args, &api_key, assume_yes).await?
+            }
+            Commands::VoiceChanger(args) => {
+                commands::voice_changer::execute(args, &api_key, output_format, assume_yes).await?
+            }
+            Commands::Dubbing(args) => {
+                commands::dubbing::execute(args, &api_key, assume_yes).await?
+            }
+            Commands::History(args) => {
+                commands::history::execute(args, &api_key, assume_yes).await?
+            }
+            Commands::User(args) => commands::user::execute(args, &api_key).await?,
+            Commands::Models(args) => commands::models::execute(args, &api_key).await?,
+            Commands::Config(args) => commands::config::execute(args, &mut config)?,
+            Commands::VoiceLibrary(args) => {
+                commands::voice_library::execute(args, &api_key).await?
+            }
+            Commands::Pronunciation(args) => {
+                commands::pronunciation::execute(args, &api_key).await?
+            }
+            Commands::Usage(args) => commands::usage::execute(args, &api_key).await?,
+            Commands::VoiceDesign(args) => {
+                commands::voice_design::execute(args, &api_key, assume_yes).await?
+            }
+            Commands::AudioNative(args) => commands::audio_native::execute(args, &api_key).await?,
+            Commands::Samples(args) => {
+                commands::samples::execute(args, &api_key, assume_yes).await?
+            }
+            Commands::Workspace(args) => commands::workspace::execute(args, &api_key).await?,
+            Commands::TtsWithTimestamps(args) => {
+                commands::tts_timestamps::execute(args, &api_key, output_format, assume_yes).await?
+            }
+            Commands::TtsStream(args) => {
+                commands::tts_stream::execute(args, &api_key, assume_yes).await?
+            }
+            Commands::RealtimeTts(args) => {
+                commands::realtime_tts::execute(args, &api_key, assume_yes).await?
+            }
+            Commands::Agent(args) => commands::agent::execute(args, &api_key).await?,
+            Commands::Conversation(args) => {
+                commands::conversation::execute(args, &api_key, assume_yes).await?
+            }
+            Commands::Knowledge(args) => commands::knowledge::execute(args, &api_key).await?,
+            Commands::Rag(args) => commands::rag::execute(args, &api_key).await?,
+            Commands::Webhook(args) => commands::webhook::execute(args, &api_key).await?,
+            Commands::Dialogue(args) => {
+                commands::dialogue::execute(args, &api_key, output_format, assume_yes).await?
+            }
+            Commands::Tools(args) => commands::tools::execute(args, &api_key).await?,
+            Commands::Projects(args) => {
+                commands::projects::execute(args, &api_key, assume_yes).await?
+            }
+            Commands::Music(args) => commands::music::execute(args, &api_key, assume_yes).await?,
+            Commands::Phone(args) => commands::phone::execute(args, &api_key, assume_yes).await?,
+            Commands::Completions { .. } => unreachable!(),
+            Commands::Update { .. } => unreachable!(),
+            Commands::Interactive => {
+                run_interactive_mode(&api_key, output_format, assume_yes).await?
+            }
+            #[cfg(feature = "mcp")]
+            Commands::Mcp { .. } => unreachable!(),
         }
-        Commands::SpeechToText(args) => commands::stt::execute(args, &api_key).await?,
-        Commands::Voice(args) => commands::voice::execute(args, &api_key, assume_yes).await?,
-        Commands::AudioIsolation(args) => {
-            commands::isolation::execute(args, &api_key, assume_yes).await?
-        }
-        Commands::SoundEffects(args) => commands::sfx::execute(args, &api_key, assume_yes).await?,
-        Commands::VoiceChanger(args) => {
-            commands::voice_changer::execute(args, &api_key, output_format, assume_yes).await?
-        }
-        Commands::Dubbing(args) => commands::dubbing::execute(args, &api_key, assume_yes).await?,
-        Commands::History(args) => commands::history::execute(args, &api_key, assume_yes).await?,
-        Commands::User(args) => commands::user::execute(args, &api_key).await?,
-        Commands::Models(args) => commands::models::execute(args, &api_key).await?,
-        Commands::Config(args) => commands::config::execute(args, &mut config)?,
-        Commands::VoiceLibrary(args) => commands::voice_library::execute(args, &api_key).await?,
-        Commands::Pronunciation(args) => commands::pronunciation::execute(args, &api_key).await?,
-        Commands::Usage(args) => commands::usage::execute(args, &api_key).await?,
-        Commands::VoiceDesign(args) => {
-            commands::voice_design::execute(args, &api_key, assume_yes).await?
-        }
-        Commands::AudioNative(args) => commands::audio_native::execute(args, &api_key).await?,
-        Commands::Samples(args) => commands::samples::execute(args, &api_key, assume_yes).await?,
-        Commands::Workspace(args) => commands::workspace::execute(args, &api_key).await?,
-        Commands::TtsWithTimestamps(args) => {
-            commands::tts_timestamps::execute(args, &api_key, output_format, assume_yes).await?
-        }
-        Commands::TtsStream(args) => {
-            commands::tts_stream::execute(args, &api_key, assume_yes).await?
-        }
-        Commands::RealtimeTts(args) => {
-            commands::realtime_tts::execute(args, &api_key, assume_yes).await?
-        }
-        Commands::Agent(args) => commands::agent::execute(args, &api_key).await?,
-        Commands::Conversation(args) => {
-            commands::conversation::execute(args, &api_key, assume_yes).await?
-        }
-        Commands::Knowledge(args) => commands::knowledge::execute(args, &api_key).await?,
-        Commands::Rag(args) => commands::rag::execute(args, &api_key).await?,
-        Commands::Webhook(args) => commands::webhook::execute(args, &api_key).await?,
-        Commands::Dialogue(args) => {
-            commands::dialogue::execute(args, &api_key, output_format, assume_yes).await?
-        }
-        Commands::Tools(args) => commands::tools::execute(args, &api_key).await?,
-        Commands::Projects(args) => commands::projects::execute(args, &api_key, assume_yes).await?,
-        Commands::Music(args) => commands::music::execute(args, &api_key, assume_yes).await?,
-        Commands::Phone(args) => commands::phone::execute(args, &api_key, assume_yes).await?,
-        Commands::Completions { .. } => unreachable!(),
-        Commands::Update { .. } => unreachable!(),
-        Commands::Interactive => run_interactive_mode(&api_key, output_format, assume_yes).await?,
-        #[cfg(feature = "mcp")]
-        Commands::Mcp { .. } => unreachable!(),
+        Ok(())
+    }
+    .await;
+
+    if let Err(e) = result {
+        eprintln!("{} {:#}", "Error:".red(), e);
+        errors::print_auth_hint(&e);
+        std::process::exit(1);
     }
 
     Ok(())
