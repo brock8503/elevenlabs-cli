@@ -21,10 +21,15 @@ elevenlabs-cli voice list -j                 # find voice IDs
 ```
 
 - Default output folder: `~/Development/scratch/tts/` (create it if missing). Name files after the content, e.g. `2026-11-03-tdr-intro.mp3`.
-- Default voice: Brian; default model `eleven_multilingual_v2`. Ask before switching to a paid or cloned voice.
+- Voice: `--voice <ID>`, else `default_voice` from config, else Brian (`nPczCjzI2devNBz1zQrb`). Always pass voice IDs, never names (names return `voice_not_found`). Set the default with `elevenlabs-cli config set default_voice <ID>`. Ask before switching to a paid or cloned voice.
+- Picking a voice: `elevenlabs-cli voice list -j` needs the key's **Voices: Read** permission. Without it, generate short samples per premade voice ID into `~/Development/scratch/tts/voice-samples/` and let the user listen.
 - Long scripts cost credits (billed per character). For text over ~5,000 characters, tell the user the character count and confirm before generating.
 - Strip markdown syntax (headings, bullets, links) from text before sending, or it gets read aloud.
 - Play the result on macOS with `afplay <file>`.
+
+## Auth errors
+
+The CLI prints a fix hint after the raw error. `api_key_id_used_as_api_key`: the user stored the key ID; they need the `sk_` secret. `missing_permissions`: the restricted key lacks the named permission; enable it in the dashboard. Either way the key is updated with `! security add-generic-password -U -a "$USER" -s elevenlabs-api-key -w` and then a new shell. See the README's Authentication section.
 
 ## Safety notes (hardened fork)
 
