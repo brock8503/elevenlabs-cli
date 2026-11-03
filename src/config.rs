@@ -54,7 +54,7 @@ impl Config {
         }
 
         let contents = toml::to_string_pretty(self)?;
-        fs::write(&config_path, contents)?;
+        write_private(&config_path, contents.as_bytes())?;
         Ok(())
     }
 
@@ -171,4 +171,28 @@ mod tests {
         // This will fail because it tries to save
         assert!(result.is_err() || true); // Accept either outcome for now
     }
+}
+
+/// Write a file readable only by the owner, since the config may hold the API key.
+#[cfg(unix)]
+fn write_private(path: &std::path::Path, contents: &[u8]) -> Result<()> {
+    use std::io::Write;
+    use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
+
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .mode(0o600)
+        .open(path)?;
+    // Tighten files created before this fix, since mode() only applies on create
+    file.set_permissions(fs::Permissions::from_mode(0o600))?;
+    file.write_all(contents)?;
+    Ok(())
+}
+
+#[cfg(not(unix))]
+fn write_private(path: &std::path::Path, contents: &[u8]) -> Result<()> {
+    fs::write(path, contents)?;
+    Ok(())
 }
