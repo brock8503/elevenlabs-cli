@@ -164,7 +164,12 @@ async fn main() -> Result<()> {
             }
             Commands::User(args) => commands::user::execute(args, &api_key).await?,
             Commands::Models(args) => commands::models::execute(args, &api_key).await?,
-            Commands::Config(args) => commands::config::execute(args, &mut config)?,
+            Commands::Config(args) => {
+                // Edit the on-disk config, not the in-memory one: the latter has
+                // ELEVENLABS_API_KEY / --api-key merged in and would persist it.
+                let mut on_disk = Config::load()?;
+                commands::config::execute(args, &mut on_disk)?
+            }
             Commands::VoiceLibrary(args) => {
                 commands::voice_library::execute(args, &api_key).await?
             }
