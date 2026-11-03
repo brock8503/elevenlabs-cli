@@ -9,6 +9,8 @@ pub struct Config {
     pub default_voice: Option<String>,
     pub default_model: Option<String>,
     pub default_output_format: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_speed: Option<f32>,
     #[serde(default)]
     pub mcp: McpConfig,
 }
@@ -70,6 +72,13 @@ impl Config {
             "default_voice" => self.default_voice = Some(value.to_string()),
             "default_model" => self.default_model = Some(value.to_string()),
             "default_output_format" => self.default_output_format = Some(value.to_string()),
+            "default_speed" => {
+                let speed: f32 = value
+                    .parse()
+                    .map_err(|_| anyhow::anyhow!("default_speed must be a number (0.7-1.2)"))?;
+                crate::commands::tts::validate_speed(speed)?;
+                self.default_speed = Some(speed)
+            }
             _ => return Err(anyhow::anyhow!("Unknown config key: {}", key)),
         }
         self.save()?;
@@ -82,6 +91,7 @@ impl Config {
             "default_voice" => self.default_voice = None,
             "default_model" => self.default_model = None,
             "default_output_format" => self.default_output_format = None,
+            "default_speed" => self.default_speed = None,
             _ => return Err(anyhow::anyhow!("Unknown config key: {}", key)),
         }
         self.save()?;

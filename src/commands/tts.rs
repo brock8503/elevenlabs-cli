@@ -16,6 +16,14 @@ use std::path::Path;
 /// Premade "Brian" voice. The API takes voice IDs, not names.
 pub const DEFAULT_VOICE_ID: &str = "nPczCjzI2devNBz1zQrb";
 
+/// The API accepts speeds from 0.7 to 1.2.
+pub fn validate_speed(speed: f32) -> Result<()> {
+    if !(0.7..=1.2).contains(&speed) {
+        anyhow::bail!("speed must be between 0.7 and 1.2 (got {})", speed);
+    }
+    Ok(())
+}
+
 pub async fn execute(
     args: TextToSpeechArgs,
     api_key: &str,
@@ -46,12 +54,16 @@ pub async fn execute(
 
     // Validate voice settings using validation module
     validate_voice_settings(args.stability, args.similarity_boost, args.style)?;
+    if let Some(sp) = args.speed {
+        validate_speed(sp)?;
+    }
 
     // Build voice settings if any provided
     let voice_settings = if args.stability.is_some()
         || args.similarity_boost.is_some()
         || args.style.is_some()
         || args.speaker_boost
+        || args.speed.is_some()
     {
         let mut settings = VoiceSettings::default();
         if let Some(s) = args.stability {
@@ -62,6 +74,9 @@ pub async fn execute(
         }
         if let Some(st) = args.style {
             settings = settings.with_style(st);
+        }
+        if let Some(sp) = args.speed {
+            settings = settings.with_speed(sp);
         }
         settings = settings.use_speaker_boost(args.speaker_boost);
         Some(settings)

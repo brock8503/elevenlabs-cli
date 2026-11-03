@@ -54,6 +54,10 @@ pub struct TextToSpeechArgs {
     #[arg(long)]
     pub speaker_boost: bool,
 
+    /// Speaking speed, 0.7 (slower) to 1.2 (faster); 1.0 is normal (default: config default_speed)
+    #[arg(long, value_name = "0.7-1.2")]
+    pub speed: Option<f32>,
+
     /// Language code (e.g., en, es, fr)
     #[arg(long, value_name = "CODE")]
     pub language: Option<String>,

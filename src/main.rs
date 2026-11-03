@@ -143,6 +143,7 @@ async fn main() -> Result<()> {
         match command {
             Commands::TextToSpeech(mut args) => {
                 args.voice = args.voice.or_else(|| config.default_voice.clone());
+                args.speed = args.speed.or(config.default_speed);
                 commands::tts::execute(args, &api_key, output_format, assume_yes).await?
             }
             Commands::SpeechToText(args) => commands::stt::execute(args, &api_key).await?,
@@ -305,6 +306,7 @@ async fn run_interactive_mode(api_key: &str, default_format: &str, assume_yes: b
                     similarity_boost: None,
                     style: None,
                     speaker_boost: false,
+                    speed: None,
                     language: None,
                     seed: None,
                 };

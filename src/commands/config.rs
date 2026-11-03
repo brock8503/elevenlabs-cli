@@ -35,6 +35,13 @@ fn show_config(config: &Config) -> Result<()> {
         "    default_voice: {}",
         config.default_voice.as_deref().unwrap_or("[not set]")
     );
+    println!(
+        "    default_speed: {}",
+        config
+            .default_speed
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| "[not set]".to_string())
+    );
 
     println!(
         "    default_model: {}",
