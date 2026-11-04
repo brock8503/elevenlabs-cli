@@ -106,6 +106,10 @@ pub enum Commands {
     #[command(name = "workspace", alias = "ws")]
     Workspace(WorkspaceArgs),
 
+    /// Play an audio file where you are (remote client over ssh/mosh, else locally)
+    #[command(name = "play")]
+    Play(PlayArgs),
+
     /// Text-to-Speech with character-level timestamps
     #[command(name = "tts-timestamps", alias = "tts-ts")]
     TtsWithTimestamps(TtsTimestampsArgs),

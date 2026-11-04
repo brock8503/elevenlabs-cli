@@ -141,8 +141,12 @@ pub async fn execute(
 
     // Play audio if requested
     if args.play {
-        print_info("Playing audio...");
-        elevenlabs_rs::utils::play(audio).map_err(|e| anyhow::anyhow!(e))?;
+        let opts = crate::playback::PlayOptions {
+            local: args.local,
+            remote_host: args.remote.clone(),
+            remote_user: args.remote_user.clone(),
+        };
+        crate::playback::play_file(path, &opts)?;
     }
 
     Ok(())

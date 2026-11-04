@@ -12,6 +12,7 @@ mod commands;
 mod config;
 mod errors;
 mod output;
+mod playback;
 mod utils;
 mod validation;
 
@@ -109,6 +110,16 @@ async fn main() -> Result<()> {
     // Load or create config
     let mut config = Config::load()?;
 
+    // Play doesn't need an API key
+    if let Commands::Play(args) = command {
+        let opts = playback::PlayOptions {
+            local: args.local,
+            remote_host: args.remote,
+            remote_user: args.remote_user.or(config.remote_user),
+        };
+        return playback::play_file(std::path::Path::new(&args.file), &opts);
+    }
+
     // Override config with CLI args if provided
     if let Some(api_key) = cli.api_key {
         config.api_key = Some(api_key);
@@ -144,6 +155,7 @@ async fn main() -> Result<()> {
             Commands::TextToSpeech(mut args) => {
                 args.voice = args.voice.or_else(|| config.default_voice.clone());
                 args.speed = args.speed.or(config.default_speed);
+                args.remote_user = args.remote_user.or_else(|| config.remote_user.clone());
                 commands::tts::execute(args, &api_key, output_format, assume_yes).await?
             }
             Commands::SpeechToText(args) => commands::stt::execute(args, &api_key).await?,
@@ -212,6 +224,7 @@ async fn main() -> Result<()> {
             Commands::Music(args) => commands::music::execute(args, &api_key, assume_yes).await?,
             Commands::Phone(args) => commands::phone::execute(args, &api_key, assume_yes).await?,
             Commands::Completions { .. } => unreachable!(),
+            Commands::Play(_) => unreachable!(),
             Commands::Update { .. } => unreachable!(),
             Commands::Interactive => {
                 run_interactive_mode(&api_key, output_format, assume_yes).await?
@@ -300,6 +313,9 @@ async fn run_interactive_mode(api_key: &str, default_format: &str, assume_yes: b
                     model: "eleven_multilingual_v2".to_string(),
                     output: None,
                     play: false,
+                    local: false,
+                    remote: None,
+                    remote_user: None,
                     output_device: None,
                     list_output_devices: false,
                     stability: None,

@@ -16,7 +16,8 @@ then open a new shell.
 ```bash
 elevenlabs-cli tts "Hello there" -o ~/Development/scratch/tts/hello.mp3
 elevenlabs-cli tts -i script.md -o ~/Development/scratch/tts/script.mp3 --voice <VOICE_ID>
-elevenlabs-cli tts "Hello" --play            # needs a build with --features audio
+elevenlabs-cli tts "Hello" -o out.mp3 --play  # plays on your ssh/mosh client if remote
+elevenlabs-cli play out.mp3 [--local]
 elevenlabs-cli voice list -j                 # find voice IDs
 ```
 
@@ -26,7 +27,8 @@ elevenlabs-cli voice list -j                 # find voice IDs
 - Picking a voice: `elevenlabs-cli voice list -j` needs the key's **Voices: Read** permission. Without it, generate short samples per premade voice ID into `~/Development/scratch/tts/voice-samples/` and let the user listen.
 - Long scripts cost credits (billed per character). For text over ~5,000 characters, tell the user the character count and confirm before generating.
 - Strip markdown syntax (headings, bullets, links) from text before sending, or it gets read aloud.
-- Play the result on macOS with `afplay <file>`.
+- Play with `--play` on `tts` (run it in the background), or `elevenlabs-cli play <file>` for an existing file. Never use bare `afplay`. Playback goes where the user is: if their most recently active tmux client came in over ssh or mosh, the CLI copies the file there with scp and plays it (afplay, mpv, ffplay or paplay). Otherwise it plays locally. `--local` forces local playback; `--remote <host>` picks a host.
+- Remote playback needs key-based ssh from this Mac to the client machine. The ssh user comes from `config set remote_user <name>`, `--remote-user`, or ssh config. On failure the CLI prints why and plays locally; relay the reason. A phone client (iOS mosh) has no ssh server, so say audio played on the host and give the file path.
 
 ## Auth errors
 

@@ -29,6 +29,18 @@ pub struct TextToSpeechArgs {
     #[arg(long)]
     pub play: bool,
 
+    /// With --play: always play on this machine, even over ssh/mosh
+    #[arg(long, requires = "play")]
+    pub local: bool,
+
+    /// With --play: play on this ssh host instead of the detected one
+    #[arg(long, value_name = "HOST", requires = "play", conflicts_with = "local")]
+    pub remote: Option<String>,
+
+    /// ssh user for remote playback (config: remote_user)
+    #[arg(long, value_name = "USER")]
+    pub remote_user: Option<String>,
+
     /// Output audio device name
     /// Use --list-output-devices to see available devices
     #[arg(long, value_name = "DEVICE")]
@@ -154,4 +166,24 @@ pub struct TtsStreamArgs {
     /// Similarity boost (0.0-1.0)
     #[arg(long, value_name = "FLOAT")]
     pub similarity_boost: Option<f32>,
+}
+
+/// Play an audio file, on the remote client when connected over ssh or mosh
+#[derive(Args)]
+pub struct PlayArgs {
+    /// Audio file to play
+    #[arg(value_name = "FILE")]
+    pub file: String,
+
+    /// Always play on this machine, even over ssh/mosh
+    #[arg(long)]
+    pub local: bool,
+
+    /// Play on this ssh host instead of the detected one
+    #[arg(long, value_name = "HOST", conflicts_with = "local")]
+    pub remote: Option<String>,
+
+    /// ssh user for remote playback (config: remote_user)
+    #[arg(long, value_name = "USER")]
+    pub remote_user: Option<String>,
 }

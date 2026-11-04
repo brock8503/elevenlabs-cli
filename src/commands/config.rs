@@ -44,6 +44,10 @@ fn show_config(config: &Config) -> Result<()> {
     );
 
     println!(
+        "    remote_user: {}",
+        config.remote_user.as_deref().unwrap_or("[not set]")
+    );
+    println!(
         "    default_model: {}",
         config.default_model.as_deref().unwrap_or("[not set]")
     );

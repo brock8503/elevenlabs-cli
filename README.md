@@ -304,3 +304,12 @@ Contributions are welcome.
 ## License
 
 MIT License. See [LICENSE](LICENSE).
+
+## Remote playback
+
+`tts --play` and `play <file>` play audio where you are. Inside tmux, the CLI finds your most recently active client; if it came in over ssh or mosh, it reads the client's `SSH_CONNECTION`, copies the file with `scp`, and plays it there with afplay, mpv, ffplay or paplay. Otherwise it plays locally.
+
+- Needs key-based ssh from this machine to the client machine (Remote Login enabled, this machine's key in its `authorized_keys`).
+- Set the ssh user with `elevenlabs-cli config set remote_user <name>` or `--remote-user`.
+- `--local` always plays here; `--remote <host>` skips detection.
+- If remote playback fails, the CLI prints the reason and plays locally.

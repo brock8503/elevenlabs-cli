@@ -11,6 +11,9 @@ pub struct Config {
     pub default_output_format: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub default_speed: Option<f32>,
+    /// ssh user for remote playback
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub remote_user: Option<String>,
     #[serde(default)]
     pub mcp: McpConfig,
 }
@@ -72,6 +75,7 @@ impl Config {
             "default_voice" => self.default_voice = Some(value.to_string()),
             "default_model" => self.default_model = Some(value.to_string()),
             "default_output_format" => self.default_output_format = Some(value.to_string()),
+            "remote_user" => self.remote_user = Some(value.to_string()),
             "default_speed" => {
                 let speed: f32 = value
                     .parse()
@@ -92,6 +96,7 @@ impl Config {
             "default_model" => self.default_model = None,
             "default_output_format" => self.default_output_format = None,
             "default_speed" => self.default_speed = None,
+            "remote_user" => self.remote_user = None,
             _ => return Err(anyhow::anyhow!("Unknown config key: {}", key)),
         }
         self.save()?;
