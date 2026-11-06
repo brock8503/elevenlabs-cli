@@ -255,7 +255,7 @@ pub fn print_auth_hint(err: &anyhow::Error) -> bool {
     eprintln!();
     eprintln!("  Update the key in macOS Keychain (prompts for it, never echoes it):");
     eprintln!("    {}", KEYCHAIN_UPDATE);
-    eprintln!("  Then open a new shell (or `source ~/.custom`) so ELEVENLABS_API_KEY reloads.");
+    eprintln!("  The CLI reads it from Keychain on each run; unset ELEVENLABS_API_KEY if a stale value is set.");
     true
 }
 

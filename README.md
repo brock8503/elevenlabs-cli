@@ -96,7 +96,7 @@ elevenlabs-cli stt audio.mp3
 
 ## Authentication
 
-The CLI reads your key from `ELEVENLABS_API_KEY` (or `--api-key`, or `api_key` in the config file). Create a key at [elevenlabs.io/app/settings/api-keys](https://elevenlabs.io/app/settings/api-keys).
+The CLI reads your key from `--api-key`, `ELEVENLABS_API_KEY`, or `api_key` in the config file, in that order. On macOS it then falls back to the Keychain item `elevenlabs-api-key`. Create a key at [elevenlabs.io/app/settings/api-keys](https://elevenlabs.io/app/settings/api-keys).
 
 ### Store the key in macOS Keychain (recommended)
 
@@ -105,13 +105,9 @@ Keep the key out of shell history and plaintext files:
 ```bash
 # Store or replace the key (-U updates an existing entry). It prompts for the key.
 security add-generic-password -U -a "$USER" -s elevenlabs-api-key -w
-
-# Load it in your shell profile (e.g. ~/.bash_profile or ~/.zshrc)
-ELEVENLABS_API_KEY="$(security find-generic-password -a "$USER" -s elevenlabs-api-key -w 2>/dev/null)"
-export ELEVENLABS_API_KEY
 ```
 
-Open a new shell (or re-source your profile) after changing the key, because running shells keep the old value.
+The CLI reads the Keychain item on each run, so there is nothing to export and a changed key takes effect immediately. A set `ELEVENLABS_API_KEY` still takes precedence, so unset it if it holds a stale value.
 
 If you use `config set api_key` instead, the config file is written with owner-only permissions (`0600`).
 

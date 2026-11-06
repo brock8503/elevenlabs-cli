@@ -11,6 +11,7 @@ mod client;
 mod commands;
 mod config;
 mod errors;
+mod keychain;
 mod output;
 mod playback;
 mod utils;
@@ -41,7 +42,7 @@ struct Cli {
     command: Option<Commands>,
 
     /// API key for ElevenLabs (or set ELEVENLABS_API_KEY environment variable)
-    #[arg(short, long, global = true, env = "ELEVENLABS_API_KEY")]
+    #[arg(short, long, global = true, env = "ELEVENLABS_API_KEY", hide_env_values = true)]
     api_key: Option<String>,
 
     /// Output format for audio (mp3_44100_128, mp3_44100_192, pcm_16000, etc.)
@@ -124,6 +125,9 @@ async fn main() -> Result<()> {
     if let Some(api_key) = cli.api_key {
         config.api_key = Some(api_key);
     }
+
+    // Fall back to the macOS Keychain when no key came from flags, env, or config
+    config.api_key = keychain::resolve_api_key(config.api_key.take());
 
     // Ensure we have an API key
     let api_key = match config.api_key.as_ref() {

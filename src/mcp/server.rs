@@ -447,7 +447,13 @@ pub async fn run_server(
         .init();
 
     let config = Config::load().unwrap_or_default();
-    let api_key = config.api_key.unwrap_or_default();
+    let api_key = crate::keychain::resolve_api_key(
+        config
+            .api_key
+            .clone()
+            .or_else(|| std::env::var("ELEVENLABS_API_KEY").ok()),
+    )
+    .unwrap_or_default();
 
     // Merge CLI args with config (CLI args take precedence)
     let mcp_config = &config.mcp;

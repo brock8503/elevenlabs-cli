@@ -5,7 +5,7 @@ description: Generate speech audio from text with the ElevenLabs CLI (`elevenlab
 
 # Text to speech with ElevenLabs
 
-Run `elevenlabs-cli` (installed to `~/.cargo/bin`). It reads `ELEVENLABS_API_KEY`, which `~/.custom` exports from macOS Keychain (service `elevenlabs-api-key`). Never pass the key with `-a`, never echo it, never write it to a file or `config set`.
+Run `elevenlabs-cli` (installed to `~/.cargo/bin`). It reads the key itself from macOS Keychain (service `elevenlabs-api-key`); nothing needs to be exported, and a set `ELEVENLABS_API_KEY` overrides it. Never pass the key with `-a`, never echo it, never write it to a file or `config set`.
 
 If the CLI reports a missing key, ask the user to run:
 `! security add-generic-password -a "$USER" -s elevenlabs-api-key -w`
